@@ -1,0 +1,36 @@
+{
+  "name": "storypointingpoker",
+  "version": "0.0.0-development",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "lint": "eslint ./src/*.js ./src/**/*.js",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "jest ./src --watch --coverage",
+    "test:ci": "jest ./src --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/julianpoy/storypointingpoker.git"
+  },
+  "author": "Julian Poyourow",
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/julianpoy/storypointingpoker/issues"
+  },
+  "homepage": "https://github.com/julianpoy/storypointingpoker#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "morgan": "^1.10.0",
+    "pug": "^3.0.2",
+    "redis": "^4.1.0",
+    "socket.io": "^4.5.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.16.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "jest": "^28.1.0"
+  }
+}

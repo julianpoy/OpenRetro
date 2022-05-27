@@ -1,0 +1,12 @@
+FROM node:16 as builder
+
+WORKDIR /app
+
+COPY package.json package.json
+
+RUN npm install
+
+COPY rollup.config.js rollup.config.js
+
+CMD npm run build -- --watch
+

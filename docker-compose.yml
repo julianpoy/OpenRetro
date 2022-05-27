@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.development
+    volumes:
+    - ./backend/src:/app/src
+    environment:
+      - FRONTEND_ASSET_PATH=/assets
+    depends_on:
+      - redis
+  redis:
+    image: redislabs/rejson
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.development
+    volumes:
+    - ./frontend/src:/app/src
+    - ./frontend/dist:/app/dist
+  proxy:
+    image: nginx
+    volumes:
+    - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    - ./frontend/dist:/usr/share/nginx/html/assets
+    ports:
+    - 3001:80
+    command: nginx -g 'daemon off;'
+    depends_on:
+      - server
+      - frontend
