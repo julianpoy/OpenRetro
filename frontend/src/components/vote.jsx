@@ -7,6 +7,12 @@ import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
 import {GridCard, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
 
+const VotesRemaining = styled.div`
+  margin: 10px;
+  text-align: center;
+  font-weight: bold;
+`;
+
 const VoteContainer = styled.span`
   display: grid;
   grid-template-columns: 40px 40px 40px;
@@ -23,20 +29,18 @@ export const Vote = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
 
-  const me = room.members.find((member) => member.ioClientId === socket.io.engine.id);
-
   const sortByNonce = (a, b) => room.nonceOrder.indexOf(a.nonce) > room.nonceOrder.indexOf(b.nonce) ? 1 : -1;
 
-  const atMaxVotes = me.votes.length === room.voteCount;
+  const atMaxVotes = room.me.votes.length === room.voteCount;
 
   const getVotesForNonce = (nonce) => {
-    return me.votes.filter((vote) => vote === nonce);
+    return room.me.votes.filter((vote) => vote === nonce);
   }
 
   const vote = (nonce, direction) => {
-    const votes = [...me.votes];
+    const votes = [...room.me.votes];
     if (direction === -1) {
-      const idx = me.votes.indexOf(nonce);
+      const idx = room.me.votes.indexOf(nonce);
       votes.splice(idx, 1);
     } else {
       votes.push(nonce);
@@ -47,7 +51,9 @@ export const Vote = () => {
 
   return (
     <>
-      Votes remaining: {room.voteCount - me.votes.length}
+      <VotesRemaining>
+        Votes remaining: {room.voteCount - room.me.votes.length}
+      </VotesRemaining>
 
       <GridContainer>
         {FORMAT_COLUMNS[room.format].map((column, idx) => (

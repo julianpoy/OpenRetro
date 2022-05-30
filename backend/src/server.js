@@ -5,6 +5,9 @@ const path = require('path');
 const pug = require('pug');
 const crypto = require('crypto');
 const url = require('url');
+
+const redisService = require('./redis.js');
+
 const animals = require('./animals.json');
 
 const app = express();
@@ -16,7 +19,6 @@ app.set('view engine', 'pug');
 
 const server = app.listen(parseInt(process.env.PORT || 3000, 10));
 
-const rooms = {};
 const roomCodesByClientId = {};
 
 const generateRandomString = length => {
@@ -32,10 +34,12 @@ const generateRandomString = length => {
 }
 
 const ROOM_CODE_LENGTH = 6;
-const generateRoomCode = () => {
+const generateRoomCode = async () => {
   const roomCode = generateRandomString(ROOM_CODE_LENGTH);
 
-  if (!rooms[roomCode]) {
+  const room = await redisService.json.get(`room:${roomCode}`, '.');
+  console.log("found", room);
+  if (!room) {
     return roomCode;
   }
 
@@ -46,12 +50,6 @@ const CLIENT_ID_SIZE = 50;
 const generateClientId = () => {
   return crypto.randomBytes(CLIENT_ID_SIZE).toString('hex');
 };
-
-const isValidRoomCode = roomCode => {
-  const containsIllegalChar = (/[^A-Z0-9]/).test(roomCode);
-  
-  return !containsIllegalChar && roomCode.length === ROOM_CODE_LENGTH;
-}
 
 const getAnonymousName = (existingNames) => {
   const availableNames = animals.filter(animal => !existingNames[`Anonymous ${animal}`]);
@@ -80,79 +78,101 @@ io.on('connection', socket => {
   const clientId = socket.client.id;
   console.log("Client connected!", clientId);
 
+  const rejoinAll = async () => {
+    const roomCodes = await redisService.client.smembers(`clientrooms:${clientId}`);
+    console.log("rejoining", roomCodes);
+    if (roomCodes) roomCodes.forEach(roomId => socket.join(roomId));
+  };
+
   // Have user rejoin any rooms they were previously in
-  if (roomCodesByClientId[clientId]) roomCodesByClientId[clientId].forEach(roomId => socket.join(roomId));
-  else roomCodesByClientId[clientId] = [];
+  rejoinAll();
 
-  socket.on('join', (roomCode, name) => {
+  socket.on('join', async (roomCode, name) => {
     console.log("Request to join room: ", roomCode);
-    const room = rooms[roomCode];
-    if (!room) return;
 
-    socket.join(roomCode);
+    const rkey = `room:${roomCode}`;
+    await redisService.redlock.using(['lock-' + rkey], 1000, async (signal) => {
+      console.log('locked');
+      const room = await redisService.json.get(rkey, '.');
+      console.log(room);
+      if (!room) return;
 
-    if (!roomCodesByClientId[clientId].includes(roomCode)) roomCodesByClientId[clientId].push(roomCode);
+      socket.join(roomCode);
 
-    const existingMember = room.members.find(member => member.ioClientId === clientId);
+      await redisService.client.sadd(`clientrooms:${clientId}`, roomCode);
 
-    if (!existingMember) {
-      room.members.push({
-        ioClientId: clientId,
-        ready: false,
-        votes: [],
-        name: room.isAnonymous ? getAnonymousName(room.members.map(member => member.name)) : name,
-      });
-    }
+      const existingMember = room.members.find(member => member.ioClientId === clientId);
+
+      if (!existingMember) {
+        room.members.push({
+          ioClientId: clientId,
+          ready: false,
+          votes: [],
+          name: room.isAnonymous ? getAnonymousName(room.members.map(member => member.name)) : name,
+        });
+        await redisService.json.set(rkey, '.', room);
+      }
+    });
 
     io.to(roomCode).emit('room-update', roomCode);
   });
 
-  const eventWrapper = (roomCode, cb) => {
-    const room = rooms[roomCode];
-    if (!room) return;
+  const eventWrapper = async (roomCode, cb) => {
+    const rkey = `room:${roomCode}`;
+    await redisService.redlock.using(['lock-' + rkey], 1000, async (signal) => {
+      const room = await redisService.json.get(rkey, '.');
+      if (!room) return;
 
-    const member = room.members.find(member => member.ioClientId === clientId);
+      const member = room.members.find(member => member.ioClientId === clientId);
+      if (!member) return;
 
-    cb(room, member);
+      await cb({
+        rkey,
+        room,
+        member,
+        signal,
+      });
+
+      await redisService.json.set(rkey, '.', room);
+    });
 
     io.to(roomCode).emit('room-update', roomCode);
   };
 
-  socket.on('ready', (roomCode) => eventWrapper(roomCode, (room, member) => {
-    if (member) member.ready = !member.ready;
+  socket.on('ready', (roomCode) => eventWrapper(roomCode, ({ room, member }) => {
+    member.ready = !member.ready;
   }));
 
-  socket.on('setState', (roomCode, state) => eventWrapper(roomCode, (room, member) => {
+  socket.on('setState', (roomCode, state) => eventWrapper(roomCode, ({ room, member }) => {
     const validStates = ['start', 'group', 'vote', 'discuss'];
 
-    if (validStates.includes(state)) {
-      room.state = state;
-    }
+    if (!validStates.includes(state)) return;
+
+    room.state = state;
 
     room.members.forEach((member) => member.ready = false);
     if (state !== 'vote' && state !== 'discuss') room.members.forEach((member) => member.votes = []);
   }));
 
-  socket.on('add', (roomCode, columnIdx, text, beforeNonce) => eventWrapper(roomCode, (room, member) => {
-    console.log("adding");
+  socket.on('add', (roomCode, columnIdx, text) => eventWrapper(roomCode, ({ room, member }) => {
     const card = {
       text,
       columnIdx,
       nonce: generateClientId(),
     };
-    room.cards.push(card);
-    room.groups.push({
+    const group = {
       title: '',
       columnIdx,
       nonce: generateClientId(),
       cards: [card],
-    });
-    const beforeIdx = room.nonceOrder.indexOf(beforeNonce);
-    if (beforeIdx > -1) room.nonceOrder.splice(beforeIdx, 0, card.nonce);
-    else room.nonceOrder.push(card.nonce);
+      actionItems: [],
+    };
+    room.groups.push(group);
+    room.nonceOrder.push(group.nonce);
+    room.nonceOrder.push(card.nonce);
   }));
 
-  socket.on('order', (roomCode, nonce, beforeNonce) => eventWrapper(roomCode, (room, member) => {
+  socket.on('order', (roomCode, nonce, beforeNonce) => eventWrapper(roomCode, ({ room, member }) => {
     const nonceIdx = room.nonceOrder.indexOf(nonce);
     if (nonceIdx > -1) room.nonceOrder.splice(nonceIdx, 1);
 
@@ -161,7 +181,7 @@ io.on('connection', socket => {
     else room.nonceOrder.push(nonce);
   }));
 
-  socket.on('groupCard', (roomCode, groupNonce, cardNonce, columnIdx) => eventWrapper(roomCode, (room, member) => {
+  socket.on('groupCard', (roomCode, groupNonce, cardNonce, columnIdx) => eventWrapper(roomCode, ({ room, member }) => {
     for (let i = 0; i < room.groups.length; i++) {
       const group = room.groups[i];
       const cardIdx = group.cards.findIndex(card => card.nonce === cardNonce)
@@ -183,6 +203,7 @@ io.on('connection', socket => {
           columnIdx,
           nonce: generateClientId(),
           cards: [card],
+          actionItems: [],
         });
       }
 
@@ -190,9 +211,10 @@ io.on('connection', socket => {
     }
   }));
 
-  socket.on('vote', (roomCode, nonces) => eventWrapper(roomCode, (room, member) => {
+  socket.on('vote', (roomCode, nonces) => eventWrapper(roomCode, ({ room, member }) => {
     if (member && nonces.length <= room.voteCount) {
       member.votes = nonces;
+      member.ready = nonces.length === room.voteCount;
     }
   }));
 
@@ -204,10 +226,21 @@ io.on('connection', socket => {
     //group.cards[0].columnIdx = columnIdx;
   //}));
 
-  socket.on('moveGroup', (roomCode, nonce, columnIdx) => eventWrapper(roomCode, (room, member) => {
+  socket.on('moveGroup', (roomCode, nonce, columnIdx) => eventWrapper(roomCode, ({ room, member }) => {
     const group = room.groups.find((group) => group.nonce === nonce);
     group.columnIdx = columnIdx;
     group.cards.forEach((card) => card.columnIdx = columnIdx);
+  }));
+
+  socket.on('createActionItem', (roomCode, nonce, title) => eventWrapper(roomCode, ({ room, member }) => {
+    const group = room.groups.find((group) => group.nonce === nonce);
+
+    if (!group) return;
+
+    const actionItem = {
+      title,
+    };
+    group.actionItems.push(actionItem);
   }));
 
   //socket.on('delete', (roomCode, nonce) => eventWrapper(roomCode, (room, member) => {
@@ -218,29 +251,19 @@ io.on('connection', socket => {
     //}
   //}));
 
-  socket.on('reset', (roomCode) => {
-    const room = rooms[roomCode];
-    if (!room) return;
+  //socket.on('disconnect', () => {
+    //console.log("User disconnected", clientId);
+    //roomCodesByClientId[clientId].forEach(roomCode => {
+      //const room = rooms[roomCode];
+      //if (!room) return;
+      //const member = room.members.find(member => member.ioClientId === clientId);
+      //if (!member) return;
 
-    room.state = 'start';
-    room.members.forEach(member => member.vote = null);
+      //room.members.splice(room.members.indexOf(member), 1);
 
-    io.to(roomCode).emit('room-update', roomCode);
-  });
-
-  socket.on('disconnect', () => {
-    console.log("User disconnected", clientId);
-    roomCodesByClientId[clientId].forEach(roomCode => {
-      const room = rooms[roomCode];
-      if (!room) return;
-      const member = room.members.find(member => member.ioClientId === clientId);
-      if (!member) return;
-
-      room.members.splice(room.members.indexOf(member), 1);
-
-      io.to(room.code).emit('room-update', room.code);
-    });
-  });
+      //io.to(room.code).emit('room-update', room.code);
+    //});
+  //});
 
   socket.on('ping', (roomCode) => {
     socket.emit('pong', roomCode);
@@ -254,28 +277,59 @@ app.get('/', (req, res) => res.render('frontend', {
 }));
 
 
-app.get('/rooms/:id', (req, res) => {
-  const room = rooms[req.params.id];
+app.get('/rooms/:id', async (req, res) => {
+  const room = await redisService.json.get(`room:${req.params.id}`, '.');
 
   if (!room) return res.sendStatus(404);
 
-  res.status(200).send(room);
+  // Calculated fields
+  room.members.forEach(member => {
+    member.voteCount = member.votes.length;
+  });
+  const votesByNonce = room.members.reduce((acc, member) => {
+    for (const vote of member.votes) {
+      acc[vote] = acc[vote] || 0;
+      acc[vote]++;
+    }
+
+    return acc;
+  }, {});
+  room.groups.forEach(group => {
+    group.voteCount = votesByNonce[group.nonce] || 0;
+  });
+
+  // Self profile
+  const member = room.members.find(member => member.ioClientId === req.query.clientId);
+  const me = member ? { ...member } : null;
+
+  // Clean identifying data
+  room.members.forEach(member => {
+    delete member.ioClientId;
+    delete member.votes;
+  });
+
+  res.status(200).send({
+    ...room,
+    me,
+  });
 });
 
-app.post('/rooms', (req, res) => {
+app.post('/rooms', async (req, res) => {
+  const code = await generateRoomCode();
+  console.log("creating new room with code", code);
   const room = {
-    code: generateRoomCode(),
+    code,
     members: [],
     state: 'start',
     format: req.body.format,
-    cards: [],
     groups: [],
     nonceOrder: [],
     voteCount: req.body.voteCount,
     isAnonymous: req.body.isAnonymous || false,
   };
 
-  rooms[room.code] = room;
+  const rkey = `room:${room.code}`;
+  await redisService.json.set(rkey, '.', room);
 
   res.status(200).send(room);
 });

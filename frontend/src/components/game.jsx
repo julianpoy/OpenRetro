@@ -30,14 +30,12 @@ export const Game = () => {
     [ROOM_STATES.DISCUSS]: <Discuss />,
   };
 
-  const me = room.members.find((member) => member.ioClientId === socket.io.engine.id);
-
   return (
     <div>
       <Header />
       <SocketConnectionGuard>
         <StageControls />
-        <ReadyStatus members={room.members} me={me} />
+        <ReadyStatus members={room.members} me={room.me} />
         {gameStates[room.state]}
       </SocketConnectionGuard>
     </div>

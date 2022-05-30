@@ -12,11 +12,9 @@ export const SocketConnectionGuard = ({ children }) => {
     });
   }, []);
 
-  const me = room?.members.find((member) => member.ioClientId === socket.io.engine.id);
+  console.log(socket, room, room?.me);
 
-  console.log(socket, room, me);
-
-  if (!room || !me) return (
+  if (!room || !room?.me) return (
     <span>
       Not connected to the room.
     </span>

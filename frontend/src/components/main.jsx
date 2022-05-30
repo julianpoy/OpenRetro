@@ -7,6 +7,8 @@ import {SocketContext} from '../contexts/socket.jsx';
 import {RoomContext} from '../contexts/room.jsx';
 import {Header} from './header.jsx';
 import {Game} from './game.jsx';
+import {Footer} from './footer.jsx';
+import {ThemeContextProvider} from '../contexts/theme.jsx';
 
 let connectionOpts;
 let clientId;
@@ -48,7 +50,7 @@ export const Main = () => {
     const roomUpdateHandler = async (roomCode) => {
       if (!room || room.code !== roomCode) return;
 
-      const roomUpdate = await fetch(`/rooms/${roomCode.toUpperCase()}`, {
+      const roomUpdate = await fetch(`/rooms/${roomCode.toUpperCase()}?clientId=${clientId}`, {
         method: 'GET',
       }).then((resp) => resp.json());
 
@@ -75,17 +77,23 @@ export const Main = () => {
   }, [room?.code]);
 
   if (!room) return (
-    <SocketContext.Provider value={socket}>
-      <Header />
-      <Welcome setRoom={setRoom} socket={socket} />
-    </SocketContext.Provider>
+    <ThemeContextProvider>
+      <SocketContext.Provider value={socket}>
+        <Header />
+        <Welcome setRoom={setRoom} socket={socket} />
+        <Footer />
+      </SocketContext.Provider>
+    </ThemeContextProvider>
   );
 
   return (
-    <SocketContext.Provider value={socket}>
-      <RoomContext.Provider value={room}>
-        <Game />
-      </RoomContext.Provider>
-    </SocketContext.Provider>
+    <ThemeContextProvider>
+      <SocketContext.Provider value={socket}>
+        <RoomContext.Provider value={room}>
+          <Game />
+          <Footer />
+        </RoomContext.Provider>
+      </SocketContext.Provider>
+    </ThemeContextProvider>
   );
 };

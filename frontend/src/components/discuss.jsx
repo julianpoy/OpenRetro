@@ -5,6 +5,7 @@ import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
 import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
+import {ActionItems} from './actionItems.jsx';
 import {GridCard, GridGroup} from './grid.jsx';
 
 const Controls = styled.div`
@@ -20,6 +21,10 @@ const ScrollingGrid = styled.div`
 const StyledGridGroup = styled(GridGroup)`
   display: inline-block;
   vertical-align: top;
+  margin-left: 20px;
+  margin-right: 20px;
+
+  ${(props) => props.active ? '' : 'opacity: 0.5;'}
 `;
 
 export const Discuss = () => {
@@ -55,17 +60,8 @@ export const Discuss = () => {
 
   const sortByNonce = (a, b) => room.nonceOrder.indexOf(a.nonce) > room.nonceOrder.indexOf(b.nonce) ? 1 : -1;
 
-  const voteCountByNonce = room.members.reduce((acc, member) => {
-    for (const vote of member.votes) {
-      acc[vote] = acc[vote] || 0;
-      acc[vote]++;
-    }
-
-    return acc;
-  }, {});
-
   const sortByVotes = (a, b) => {
-    const diff = (voteCountByNonce[a.nonce] || 0) - (voteCountByNonce[b.nonce] || 0);
+    const diff = a.voteCount - b.voteCount;
     if (!diff) return a.nonce.localeCompare(b.nonce); // Keep sort order consistent if vote count is the same
     return diff < 0 ? 1 : -1;
   };
@@ -86,8 +82,14 @@ export const Discuss = () => {
       <ScrollingGrid>
         <div style={padderStyles}></div>
         {room.groups.sort(sortByVotes).map((group, idx) => (
-          <StyledGridGroup key={group.nonce} width={groupWidth} className="group-entry" onClick={() => setCurrentGroup(idx)}>
-            {voteCountByNonce[group.nonce] || 0} Votes
+          <StyledGridGroup
+            key={group.nonce}
+            width={groupWidth}
+            className="group-entry"
+            onClick={() => setCurrentGroup(idx)}
+            active={currentGroup === idx}
+          >
+            {group.voteCount} Votes
             {group.cards.sort(sortByNonce).map((card) => (
               <GridCard
                 key={card.nonce}
@@ -96,6 +98,7 @@ export const Discuss = () => {
                 {card.text}
               </GridCard>
             ))}
+            <ActionItems group={group} />
           </StyledGridGroup>
         ))}
         <div style={padderStyles}></div>

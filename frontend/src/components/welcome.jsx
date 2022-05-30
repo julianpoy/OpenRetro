@@ -18,7 +18,7 @@ export const Welcome = ({ setRoom, socket }) => {
   const [showCreating, setShowCreating] = useState(false);
 
   const joinRoom = async () => {
-    const room = await fetch(`/rooms/${roomCode.toUpperCase()}`, {
+    const room = await fetch(`/rooms/${roomCode.toUpperCase()}?clientId=${socket.io.engine.id}`, {
       method: 'GET',
     }).then((resp) => resp.json()).catch(() => {
       window.history.pushState(null, '', window.location.origin)

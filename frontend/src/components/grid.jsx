@@ -25,6 +25,7 @@ export const GridGroup = styled.div`
 export const GridCard = styled.div`
   border-radius: 5px;
   background: ${(props) => props.color};
+  color: black;
   font-size: 14px;
   padding: 10px;
   margin: 1px;

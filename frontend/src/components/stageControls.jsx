@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { SocketContext } from '../contexts/socket.jsx';
 import { RoomContext } from '../contexts/room.jsx';
 import {ROOM_STATES} from '../utils/roomStates.js';
+import {ThemeContext} from '../contexts/theme.jsx';
 
 const Container = styled.div`
   text-align: center;
@@ -22,12 +23,18 @@ const Chevron = styled.div`
   margin-top: -8px;
 `;
 
+const buttonBG = (props) => {
+  if (props.active) return '#3498db';
+
+  return props.theme === 'dark' ? '#cacaca' : 'white';
+}
+
 const Button = styled.button`
   cursor: pointer;
   margin: 5px;
   padding: 10px;
   border: none;
-  background-color: ${(props) => props.active ? '#3498db' : 'white'};
+  background-color: ${buttonBG};
   color: ${(props) => props.active ? 'white' : 'black'};
   flex: 1 1 0px;
   box-shadow: 0px 0px 7px rgba(0,0,0,0.2);
@@ -37,6 +44,7 @@ const Button = styled.button`
 export const StageControls = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
 
   const isAllReady = !room.members.find((member) => !member.ready);
 
@@ -51,6 +59,7 @@ export const StageControls = () => {
       <Button
         onClick={() => fireStage(ROOM_STATES.IDEA_GENERATION)}
         active={room.state === ROOM_STATES.IDEA_GENERATION}
+        theme={themeContext.theme}
       >
         Brainstorm
       </Button>
@@ -60,6 +69,7 @@ export const StageControls = () => {
       <Button
         onClick={() => fireStage(ROOM_STATES.GROUP)}
         active={room.state === ROOM_STATES.GROUP}
+        theme={themeContext.theme}
       >
         Group
       </Button>
@@ -69,6 +79,7 @@ export const StageControls = () => {
       <Button
         onClick={() => fireStage(ROOM_STATES.VOTE)}
         active={room.state === ROOM_STATES.VOTE}
+        theme={themeContext.theme}
       >
         Vote
       </Button>
@@ -78,6 +89,7 @@ export const StageControls = () => {
       <Button
         onClick={() => fireStage(ROOM_STATES.DISCUSS)}
         active={room.state === ROOM_STATES.DISCUSS}
+        theme={themeContext.theme}
       >
         Discuss
       </Button>
