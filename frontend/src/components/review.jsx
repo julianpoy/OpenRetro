@@ -20,11 +20,13 @@ export const Review = () => {
 
   const today = new Date().toLocaleDateString().replaceAll('/', '-');
 
+  const retroNameTruncated = room.name.substring(0, 30);
+
   return (
     <Container>
       <div>
         The retro is complete. You may close this page, but to save your state,&nbsp;
-        <a href={`/rooms/${room.code}/actionItemsExport`} target="_blank" download={`OpenRetro Action Items ${today}.json`}>download your action items for next time.</a>
+        <a href={`/rooms/${room.code}/actionItemsExport`} target="_blank" download={`OpenRetro - ${retroNameTruncated} ${today}.json`}>download your action items for next time.</a>
       </div>
 
       <ActionItemsHeader>

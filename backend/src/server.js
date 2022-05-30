@@ -405,6 +405,7 @@ app.post('/rooms', async (req, res) => {
   const startWithActionItemReview = actionItems.length && req.body.startWithActionItemReview;
   const state = startWithActionItemReview ? 'preReview' : 'brainstorm';
   const room = {
+    name: req.body.name,
     code,
     members: [],
     state,
