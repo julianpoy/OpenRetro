@@ -1,5 +1,5 @@
 export const ROOM_STATES = {
-  IDEA_GENERATION: 'start',
+  IDEA_GENERATION: 'brainstorm',
   GROUP: 'group',
   VOTE: 'vote',
   DISCUSS: 'discuss',

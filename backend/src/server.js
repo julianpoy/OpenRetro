@@ -144,7 +144,7 @@ io.on('connection', socket => {
   }));
 
   socket.on('setState', (roomCode, state) => eventWrapper(roomCode, ({ room, member }) => {
-    const validStates = ['start', 'group', 'vote', 'discuss'];
+    const validStates = ['brainstorm', 'group', 'vote', 'discuss'];
 
     if (!validStates.includes(state)) return;
 
@@ -191,7 +191,7 @@ io.on('connection', socket => {
       if (groupNonce && !newGroup) return;
 
       const card = group.cards.splice(cardIdx, 1)[0];
-      if (room.state === 'start') card.columnIdx = columnIdx;
+      if (room.state === 'brainstorm') card.columnIdx = columnIdx; // Only change card color when moving during brainstorm
       if (group.cards.length === 0) room.groups.splice(i, 1);
       if (group.cards.length === 1) group.title = '';
 
@@ -320,7 +320,7 @@ app.post('/rooms', async (req, res) => {
   const room = {
     code,
     members: [],
-    state: 'start',
+    state: 'brainstorm',
     format: req.body.format,
     groups: [],
     nonceOrder: [],

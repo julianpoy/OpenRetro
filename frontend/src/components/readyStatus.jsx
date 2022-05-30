@@ -10,6 +10,7 @@ import {ThemeContext} from '../contexts/theme.jsx';
 
 const StatusLine = styled.div`
   text-align: center;
+  margin: 20px 0;
 `;
 
 const ParticipantsPopover = styled.div`
