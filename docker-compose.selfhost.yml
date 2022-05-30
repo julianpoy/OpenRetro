@@ -9,14 +9,17 @@ services:
     command: node ./src/server.js
     depends_on:
       - redis
+    restart: always
   redis:
     image: redislabs/rejson
+    restart: always
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
     - ./frontend/dist:/app/dist
+    restart: always
   proxy:
     image: nginx
     volumes:
@@ -25,6 +28,7 @@ services:
     ports:
     - 3001:80
     command: nginx -g 'daemon off;'
+    restart: always
     depends_on:
       - server
       - frontend
