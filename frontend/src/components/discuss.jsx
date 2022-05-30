@@ -32,7 +32,6 @@ export const Discuss = () => {
   const room = useContext(RoomContext);
   const themeContext = useContext(ThemeContext);
   const [padderWidth, setPadderWidth] = useState(window.innerWidth);
-  const [currentGroup, setCurrentGroup] = useState(0);
 
   useEffect(() => {
     const onResize = () => {
@@ -46,19 +45,24 @@ export const Discuss = () => {
 
   useEffect(() => {
     const groups = document.getElementsByClassName('group-entry');
-    const group = groups[currentGroup];
+    const group = groups[room.currentGroupIdx];
     if (!group) return;
     group.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
-  }, [currentGroup, padderWidth]);
+  }, [room.currentGroupIdx, padderWidth]);
+
+  const setCurrentGroup = (idx) => {
+    socket.emit('setCurrentGroup', room.code, idx);
+  };
 
   const move = (direction) => {
-    const nextGroup = currentGroup + direction;
+    const nextGroup = room.currentGroupIdx + direction;
     if (nextGroup > room.groups.length - 1) return;
     if (nextGroup < 0) return;
+
     setCurrentGroup(nextGroup);
   };
-  const atMax = currentGroup + 1 >= room.groups.length;
-  const atMin = currentGroup <= 0;
+  const atMax = room.currentGroupIdx + 1 >= room.groups.length;
+  const atMin = room.currentGroupIdx <= 0;
 
   const sortByNonce = (a, b) => room.nonceOrder.indexOf(a.nonce) > room.nonceOrder.indexOf(b.nonce) ? 1 : -1;
 
@@ -84,7 +88,7 @@ export const Discuss = () => {
       <ScrollingGrid>
         <div style={padderStyles}></div>
         {room.groups.sort(sortByVotes).map((group, idx) => (
-          <DiscussionItem onClick={() => setCurrentGroup(idx)} active={currentGroup === idx}>
+          <DiscussionItem onClick={() => setCurrentGroup(idx)} active={room.currentGroupIdx === idx}>
             <GridGroup
               key={group.nonce}
               width={groupWidth}

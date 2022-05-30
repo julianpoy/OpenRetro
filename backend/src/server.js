@@ -289,6 +289,12 @@ io.on('connection', socket => {
     update(room.previousActionItems);
   }));
 
+  socket.on('setCurrentGroup', (roomCode, groupIdx) => eventWrapper(roomCode, ({ room, member }) => {
+    if (groupIdx < 0 || groupIdx > room.groups.length - 1) return;
+
+    room.currentGroupIdx = groupIdx;
+  }));
+
   //socket.on('delete', (roomCode, nonce) => eventWrapper(roomCode, (room, member) => {
     //for (let i = 0; i < room.cardColumns.length; i++) {
       //const column = room.cardColumns[i];
@@ -404,6 +410,7 @@ app.post('/rooms', async (req, res) => {
     state,
     format: req.body.format,
     groups: [],
+    currentGroupIdx: 0,
     nonceOrder: [],
     voteCount: req.body.voteCount,
     isAnonymous: !!req.body.isAnonymous,

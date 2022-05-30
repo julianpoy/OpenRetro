@@ -4,6 +4,7 @@ import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
 import {Input} from './input.jsx';
+import {IconButton} from './button.jsx';
 
 const Container = styled.div`
   margin-top: 20px;
@@ -22,6 +23,9 @@ const ActionItem = styled.div`
   padding: 10px;
   font-size: 14px;
   border-top: 1px solid ${(props) => props.theme === 'dark' ? 'darkgray' : 'lightgray'};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
   &:first-child {
     border: none;
@@ -30,6 +34,10 @@ const ActionItem = styled.div`
 
 const StyledInputActionItem = styled(Input)`
   flex-grow: 1;
+`;
+
+const Delete = styled(IconButton)`
+  color: red;
 `;
 
 export const ActionItems = ({
@@ -47,6 +55,10 @@ export const ActionItems = ({
     setValue('');
   };
 
+  const deleteItem = (actionItem) => {
+    socket.emit('actionItem.update', room.code, actionItem.nonce, actionItem.title, actionItem.done, true);
+  };
+
   return (
     <Container>
       <StyledInputActionItem
@@ -58,7 +70,10 @@ export const ActionItems = ({
       <ActionItemsContainer theme={themeContext.theme}>
         {group.actionItems.map((actionItem, idx) => (
           <ActionItem key={idx} theme={themeContext.theme}>
-            {actionItem.title}
+            <div>
+              {actionItem.title}
+            </div>
+            <Delete onClick={() => deleteItem(actionItem)}>&#x1F5D1;</Delete>
           </ActionItem>
         ))}
       </ActionItemsContainer>

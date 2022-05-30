@@ -2,6 +2,7 @@ import {useContext} from 'preact/hooks';
 import styled from 'styled-components';
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 import {Input} from './input.jsx';
 
 const Container = styled.div`
@@ -17,7 +18,7 @@ const ActionItemCheckbox = styled(Input)`
 const ActionItem = styled.label`
   display: flex;
   justify-content: space-between;
-  box-shadow: 0 0 7px rgba(0,0,0,0.2);
+  box-shadow: 0 0 7px ${(props) => props.theme === 'dark' ? 'black' : 'rgba(0,0,0,0.2)'};
   padding: 10px;
   margin: 10px;
 `;
@@ -25,6 +26,7 @@ const ActionItem = styled.label`
 export const ActionItemReview = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
 
   if (!room.actionItems.length) return (
     <Container>
@@ -46,7 +48,7 @@ export const ActionItemReview = () => {
   return (
     <Container>
       {room.actionItems.sort(sortByDate).map(item => (
-        <ActionItem>
+        <ActionItem theme={themeContext.theme}>
           <div>
             <ActionItemCheckbox type="checkbox" checked={item.done} onClick={(event) => onItemChecked(event, item)} />
             {item.title}
