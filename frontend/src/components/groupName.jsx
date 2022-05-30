@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useContext } from 'preact/hooks';
 import styled from 'styled-components';
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 import {IconButton} from './button.jsx';
 import {Input} from './input.jsx';
 
@@ -33,7 +34,7 @@ const Unnamed = styled.div`
   text-align: left;
   font-size: 12px;
   font-style: italic;
-  color: gray;
+  color: ${(props) => props.theme === 'dark' ? 'lightgray' : 'gray'};
   padding: 2px;
   cursor: pointer;
 `;
@@ -41,6 +42,7 @@ const Unnamed = styled.div`
 export const GroupName = ({ group }) => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(group.title);
   const ref = useRef();
@@ -79,7 +81,7 @@ export const GroupName = ({ group }) => {
 
   if (!group.title) return (
     <Container onClick={onStartEdit}>
-      <Unnamed>
+      <Unnamed theme={themeContext.theme}>
         Click to add group name...
       </Unnamed>
       <EditIcon>&#9998;</EditIcon>

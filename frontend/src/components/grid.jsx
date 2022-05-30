@@ -27,7 +27,7 @@ export const GridGroup = styled.div`
   margin: 5px;
 
   ${(props) => props.backdrop && `
-    background: ${props.theme === 'dark' ? 'black' : 'rgba(0,0,0,0.1)'};
+    background: ${props.theme === 'dark' ? '#203142' : 'rgba(0,0,0,0.1)'};
     margin: 10px;
   `}
 `;
