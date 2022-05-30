@@ -7,6 +7,7 @@ import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
 import {ActionItems} from './actionItems.jsx';
 import {GridCard, GridGroup} from './grid.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 
 const Controls = styled.div`
   text-align: center;
@@ -18,18 +19,18 @@ const ScrollingGrid = styled.div`
   overflow-x: hidden;
 `;
 
-const StyledGridGroup = styled(GridGroup)`
+const DiscussionItem = styled.div`
   display: inline-block;
   vertical-align: top;
   margin-left: 20px;
   margin-right: 20px;
-
   ${(props) => props.active ? '' : 'opacity: 0.5;'}
 `;
 
 export const Discuss = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
   const [padderWidth, setPadderWidth] = useState(window.innerWidth);
   const [currentGroup, setCurrentGroup] = useState(0);
 
@@ -83,24 +84,35 @@ export const Discuss = () => {
       <ScrollingGrid>
         <div style={padderStyles}></div>
         {room.groups.sort(sortByVotes).map((group, idx) => (
-          <StyledGridGroup
-            key={group.nonce}
-            width={groupWidth}
-            className="group-entry"
-            onClick={() => setCurrentGroup(idx)}
-            active={currentGroup === idx}
-          >
-            {group.voteCount} Votes
-            {group.cards.sort(sortByNonce).map((card) => (
-              <GridCard
-                key={card.nonce}
-                color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
-              >
-                {card.text}
-              </GridCard>
-            ))}
+          <DiscussionItem onClick={() => setCurrentGroup(idx)} active={currentGroup === idx}>
+            <GridGroup
+              key={group.nonce}
+              width={groupWidth}
+              className="group-entry"
+              theme={themeContext.theme}
+            >
+              <p>
+                <b>
+                  {group.voteCount} Vote{group.voteCount !== 1 && 's'}
+                </b>
+              </p>
+              {group.cards.length > 1 && group.title && (
+                <div>
+                  {group.title}
+                </div>
+              )}
+              {group.cards.sort(sortByNonce).map((card) => (
+                <GridCard
+                  key={card.nonce}
+                  color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                  theme={themeContext.theme}
+                >
+                  {card.text}
+                </GridCard>
+              ))}
+            </GridGroup>
             <ActionItems group={group} />
-          </StyledGridGroup>
+          </DiscussionItem>
         ))}
         <div style={padderStyles}></div>
       </ScrollingGrid>

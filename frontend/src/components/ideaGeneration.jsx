@@ -13,6 +13,7 @@ import {ROOM_STATES} from '../utils/roomStates.js';
 import {IconButton} from './button.jsx';
 import {Input} from './input.jsx';
 import {GroupName} from './groupName.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 
 const Delete = styled(IconButton)`
   position: absolute;
@@ -24,6 +25,7 @@ const Delete = styled(IconButton)`
 export const IdeaGeneration = ({ disableInput }) => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
 
   const [dragItem, setDragItem] = useState();
   const [dragTarget, setDragTarget] = useState();
@@ -96,12 +98,15 @@ export const IdeaGeneration = ({ disableInput }) => {
             <GridGroup
               key={group.nonce}
               dropEffect={dragTargetType === 'card' && dragTarget?.group?.nonce === group.nonce}
+              backdrop={group.cards.length > 1}
+              theme={themeContext.theme}
             >
               {group.cards.length > 1 && <GroupName group={group} />}
               {group.cards.sort(sortByNonce).map((card) => (
                 <GridCard
                   key={card.nonce}
                   color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                  theme={themeContext.theme}
                   invisible={!room.revealImmediately && room.state === ROOM_STATES.IDEA_GENERATION && !card.isOwner}
                   onDragStart={(event) => dragStart(event, card)}
                   onDragEnd={(event) => dragEnd(event, card)}

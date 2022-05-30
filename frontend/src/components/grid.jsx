@@ -22,7 +22,14 @@ export const GridColumnTitle = styled.div`
 export const GridGroup = styled.div`
   outline: ${(props) => props.dropEffect ? '1px dashed #3498db' : 'none'};
   padding: 5px;
-  ${(props) => props.width ? `width: ${props.width}px` : ``}
+  ${(props) => props.width ? `width: ${props.width}px;` : ``}
+  border-radius: 5px;
+  margin: 5px;
+
+  ${(props) => props.backdrop && `
+    background: ${props.theme === 'dark' ? 'black' : 'rgba(0,0,0,0.1)'};
+    margin: 10px;
+  `}
 `;
 
 export const GridCard = styled.div`
@@ -34,5 +41,6 @@ export const GridCard = styled.div`
   padding: 10px 20px;
   margin: 1px;
   cursor: pointer;
+  ${(props) => props.theme === 'dark' && 'opacity: 0.9;'}
 `;
 

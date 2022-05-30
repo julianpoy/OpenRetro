@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
 import {GridCard, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
@@ -15,14 +16,17 @@ const VotesRemaining = styled.div`
 
 const VoteContainer = styled.span`
   display: grid;
-  grid-template-columns: 40px 40px 40px;
+  grid-template-columns: 40px 20px 40px;
   align-items: center;
-  justify-content: center;
+  justify-content: end;
+  margin: 5px;
 `;
 
 const VoteCount = styled.span`
-  margin-left: 5px;
-  margin-right: 5px;
+`;
+
+const VoteButton = styled(Button)`
+  padding: 0;
 `;
 
 const GroupTitle = styled.div`
@@ -33,6 +37,7 @@ const GroupTitle = styled.div`
 export const Vote = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
 
   const sortByNonce = (a, b) => room.nonceOrder.indexOf(a.nonce) > room.nonceOrder.indexOf(b.nonce) ? 1 : -1;
 
@@ -67,13 +72,13 @@ export const Vote = () => {
               {column.title}
             </GridColumnTitle>
             {room.groups.filter(group => group.columnIdx === idx).sort(sortByNonce).map((group) => (
-              <GridGroup key={group.nonce}>
+              <GridGroup key={group.nonce} backdrop={true} theme={themeContext.theme}>
                 <VoteContainer>
-                  <Button onClick={() => vote(group.nonce, -1)} disabled={!getVotesForNonce(group.nonce).length}>-</Button>
+                  <VoteButton onClick={() => vote(group.nonce, -1)} disabled={!getVotesForNonce(group.nonce).length}>-</VoteButton>
                   <VoteCount>
                     {getVotesForNonce(group.nonce).length}
                   </VoteCount>
-                  <Button onClick={() => vote(group.nonce, 1)} disabled={atMaxVotes}>+</Button>
+                  <VoteButton onClick={() => vote(group.nonce, 1)} disabled={atMaxVotes}>+</VoteButton>
                 </VoteContainer>
                 
                 {group.cards.length > 1 && (
@@ -85,6 +90,7 @@ export const Vote = () => {
                   <GridCard
                     key={card.nonce}
                     color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                    theme={themeContext.theme}
                   >
                     {card.text}
                   </GridCard>

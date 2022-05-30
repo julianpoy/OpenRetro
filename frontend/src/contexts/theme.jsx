@@ -9,11 +9,11 @@ export const ThemeContext = createContext(browserTheme);
 const GlobalStyle = createGlobalStyle`
   html {
     ${(props) => props.theme === 'dark' && 'background-color: #111;'}
-    ${(props) => props.theme === 'dark' && 'color: white;'}
+    ${(props) => props.theme === 'dark' && 'color: #eee;'}
   }
 
   ::placeholder {
-    ${(props) => props.theme === 'dark' && 'color: white;'}
+    ${(props) => props.theme === 'dark' && 'color: #eee;'}
   }
 
   a:visited {

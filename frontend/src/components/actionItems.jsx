@@ -2,23 +2,26 @@ import { useState, useContext } from 'preact/hooks';
 import styled from 'styled-components';
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 import {Input} from './input.jsx';
 
 const Container = styled.div`
   margin-top: 20px;
   display: flex;
   flex-direction: column;
+  padding-bottom: 10px;
 `;
 
 const ActionItemsContainer = styled.div`
-  box-shadow: 0 0 7px rgba(0,0,0,0.2);
+  box-shadow: 0 0 7px ${(props) => props.theme === 'dark' ? 'black' : 'rgba(0,0,0,0.2)'};
   border-radius: 5px;
+  margin: 5px 0px;
 `;
 
 const ActionItem = styled.div`
   padding: 10px;
   font-size: 14px;
-  border-top: 1px solid lightgray;
+  border-top: 1px solid ${(props) => props.theme === 'dark' ? 'darkgray' : 'lightgray'};
 
   &:first-child {
     border: none;
@@ -34,6 +37,7 @@ export const ActionItems = ({
 }) => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
   const [value, setValue] = useState('');
 
   const actionItemKeydown = (event, group) => {
@@ -51,9 +55,9 @@ export const ActionItems = ({
         onChange={(event) => setValue(event.target.value)}
         value={value}
       />
-      <ActionItemsContainer>
+      <ActionItemsContainer theme={themeContext.theme}>
         {group.actionItems.map((actionItem, idx) => (
-          <ActionItem key={idx}>
+          <ActionItem key={idx} theme={themeContext.theme}>
             {actionItem.title}
           </ActionItem>
         ))}
