@@ -24,6 +24,7 @@ const Container = styled.div`
   right: 0;
   top: 50%;
   transform: translateY(-50%);
+  border-radius: 5px;
 `;
 
 const Title = styled.div`

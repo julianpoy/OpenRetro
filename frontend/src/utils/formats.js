@@ -3,6 +3,7 @@ export const FORMATS = {
   MAD_SAD_GLAD: 'madSadGlad',
   FOUR_LS: 'fourLs',
   START_STOP_CONTINUE: 'startStopContinue',
+  DROP_ADD_KEEP_IMPROVE: 'dropAddKeepImprove',
 };
 
 const RED = 'rgb(251, 180, 175)';
@@ -60,11 +61,26 @@ const START_STOP_CONTINUE = [{
   color: YELLOW
 }];
 
+const DROP_ADD_KEEP_IMPROVE = [{
+  title: 'Drop',
+  color: YELLOW
+}, {
+  title: 'Add',
+  color: GREEN
+},{
+  title: 'Keep',
+  color: BLUE
+}, {
+  title: 'Improve',
+  color: RED
+}];
+
 export const FORMAT_COLUMNS = {
   [FORMATS.AGILE]: AGILE,
   [FORMATS.MAD_SAD_GLAD]: MAD_SAD_GLAD,
   [FORMATS.FOUR_LS]: FOUR_LS,
   [FORMATS.START_STOP_CONTINUE]: START_STOP_CONTINUE,
+  [FORMATS.DROP_ADD_KEEP_IMPROVE]: DROP_ADD_KEEP_IMPROVE,
 };
 
 export const FORMAT_NAMES = {
@@ -72,5 +88,6 @@ export const FORMAT_NAMES = {
   [FORMATS.MAD_SAD_GLAD]: 'Mad Sad Glad',
   [FORMATS.FOUR_LS]: 'Four Ls',
   [FORMATS.START_STOP_CONTINUE]: 'Start Stop Continue',
+  [FORMATS.DROP_ADD_KEEP_IMPROVE]: 'Drop Add Keep Improve',
 }
 
