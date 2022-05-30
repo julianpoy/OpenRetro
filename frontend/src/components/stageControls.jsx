@@ -24,7 +24,7 @@ const Chevron = styled.div`
 `;
 
 const buttonBG = (props) => {
-  if (props.active) return '#3498db';
+  if (props.active) return '#3880ff';
 
   return props.theme === 'dark' ? '#cacaca' : 'white';
 }
