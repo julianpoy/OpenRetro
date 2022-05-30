@@ -9,6 +9,7 @@ import {Header} from './header.jsx';
 import {Game} from './game.jsx';
 import {Footer} from './footer.jsx';
 import {ThemeContextProvider} from '../contexts/theme.jsx';
+import {ModalContextProvider} from '../contexts/modal.jsx';
 
 let connectionOpts;
 let clientId;
@@ -78,22 +79,26 @@ export const Main = () => {
 
   if (!room) return (
     <ThemeContextProvider>
-      <SocketContext.Provider value={socket}>
-        <Header />
-        <Welcome setRoom={setRoom} socket={socket} />
-        <Footer />
-      </SocketContext.Provider>
+      <ModalContextProvider>
+        <SocketContext.Provider value={socket}>
+          <Header />
+          <Welcome setRoom={setRoom} socket={socket} />
+          <Footer />
+        </SocketContext.Provider>
+      </ModalContextProvider>
     </ThemeContextProvider>
   );
 
   return (
     <ThemeContextProvider>
-      <SocketContext.Provider value={socket}>
-        <RoomContext.Provider value={room}>
-          <Game />
-          <Footer />
-        </RoomContext.Provider>
-      </SocketContext.Provider>
+      <ModalContextProvider>
+        <SocketContext.Provider value={socket}>
+          <RoomContext.Provider value={room}>
+            <Game />
+            <Footer />
+          </RoomContext.Provider>
+        </SocketContext.Provider>
+      </ModalContextProvider>
     </ThemeContextProvider>
   );
 };

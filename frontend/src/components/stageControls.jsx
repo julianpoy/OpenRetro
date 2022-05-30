@@ -6,6 +6,7 @@ import { SocketContext } from '../contexts/socket.jsx';
 import { RoomContext } from '../contexts/room.jsx';
 import {ROOM_STATES} from '../utils/roomStates.js';
 import {ThemeContext} from '../contexts/theme.jsx';
+import {ModalContext} from '../contexts/modal.jsx';
 
 const Container = styled.div`
   text-align: center;
@@ -45,14 +46,25 @@ export const StageControls = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
   const themeContext = useContext(ThemeContext);
+  const modal = useContext(ModalContext);
 
   const isAllReady = !room.members.find((member) => !member.ready);
 
-  const fireStage = (stage) => {
+  const fireState = (state) => {
     const displayAlert = !isAllReady && room.state !== ROOM_STATES.REVIEW;
-    if (displayAlert && !confirm("Not all members have indicated they're ready, are you sure you want to proceed?")) return;
+    if(displayAlert) return modal.show({
+      title: "Warning",
+      message: "Not all members have indicated they're ready, are you sure you want to proceed?",
+      confirmText: "Yes",
+      onConfirm: () => (modal.dismiss(), setState(state)),
+      onReject: () => modal.dismiss(),
+    });
 
-    socket.emit('setState', room.code, stage);
+    setState();
+  };
+
+  const setState = (state) => {
+    socket.emit('setState', room.code, state);
   };
 
   const divider = (
@@ -68,7 +80,7 @@ export const StageControls = () => {
       {showPreReview && (
         <>
           <Button
-            onClick={() => fireStage(ROOM_STATES.PRE_REVIEW)}
+            onClick={() => fireState(ROOM_STATES.PRE_REVIEW)}
             active={room.state === ROOM_STATES.PRE_REVIEW}
             theme={themeContext.theme}
           >
@@ -78,7 +90,7 @@ export const StageControls = () => {
         </>
       )}
       <Button
-        onClick={() => fireStage(ROOM_STATES.IDEA_GENERATION)}
+        onClick={() => fireState(ROOM_STATES.IDEA_GENERATION)}
         active={room.state === ROOM_STATES.IDEA_GENERATION}
         theme={themeContext.theme}
       >
@@ -86,7 +98,7 @@ export const StageControls = () => {
       </Button>
       {divider}
       <Button
-        onClick={() => fireStage(ROOM_STATES.GROUP)}
+        onClick={() => fireState(ROOM_STATES.GROUP)}
         active={room.state === ROOM_STATES.GROUP}
         theme={themeContext.theme}
       >
@@ -94,7 +106,7 @@ export const StageControls = () => {
       </Button>
       {divider}
       <Button
-        onClick={() => fireStage(ROOM_STATES.VOTE)}
+        onClick={() => fireState(ROOM_STATES.VOTE)}
         active={room.state === ROOM_STATES.VOTE}
         theme={themeContext.theme}
       >
@@ -102,7 +114,7 @@ export const StageControls = () => {
       </Button>
       {divider}
       <Button
-        onClick={() => fireStage(ROOM_STATES.DISCUSS)}
+        onClick={() => fireState(ROOM_STATES.DISCUSS)}
         active={room.state === ROOM_STATES.DISCUSS}
         theme={themeContext.theme}
       >
@@ -110,7 +122,7 @@ export const StageControls = () => {
       </Button>
       {divider}
       <Button
-        onClick={() => fireStage(ROOM_STATES.REVIEW)}
+        onClick={() => fireState(ROOM_STATES.REVIEW)}
         active={room.state === ROOM_STATES.REVIEW}
         theme={themeContext.theme}
       >

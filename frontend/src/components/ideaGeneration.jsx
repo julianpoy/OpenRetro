@@ -14,6 +14,7 @@ import {IconButton} from './button.jsx';
 import {Input} from './input.jsx';
 import {GroupName} from './groupName.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
+import {ModalContext} from '../contexts/modal.jsx';
 
 const Delete = styled(IconButton)`
   position: absolute;
@@ -26,6 +27,7 @@ export const IdeaGeneration = ({ disableInput }) => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
   const themeContext = useContext(ThemeContext);
+  const modal = useContext(ModalContext);
 
   const [dragItem, setDragItem] = useState();
   const [dragTarget, setDragTarget] = useState();
@@ -33,9 +35,17 @@ export const IdeaGeneration = ({ disableInput }) => {
   const [isBeforeTarget, setIsBeforeTarget] = useState(false);
 
   const deleteCard = (group, card) => {
-    if (!confirm('You are about to delete this card')) return;
+    const onConfirm = () => {
+      socket.emit('card.delete', room.code, group.nonce, card.nonce);
+    };
 
-    socket.emit('card.delete', room.code, group.nonce, card.nonce);
+    modal.show({
+      title: "Warning",
+      message: "Are you sure you want to delete this card?",
+      confirmText: "Delete",
+      onConfirm: () => (modal.dismiss(), onConfirm()),
+      onReject: () => modal.dismiss(),
+    });
   };
   
   const dragStart = (event, card) => {
