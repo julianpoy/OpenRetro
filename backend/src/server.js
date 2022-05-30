@@ -162,6 +162,8 @@ io.on('connection', socket => {
       text,
       columnIdx,
       nonce: generateClientId(),
+      author: member.ioClientId,
+      authorName: member.name,
     };
     const group = {
       title: '',
@@ -335,16 +337,29 @@ app.get('/rooms/:id', async (req, res) => {
   }, {});
   room.groups.forEach(group => {
     group.voteCount = votesByNonce[group.nonce] || 0;
+
+    group.cards.forEach((card) => {
+      card.isOwner = card.author === req.query.clientId;
+    });
   });
 
   // Self profile
   const member = room.members.find(member => member.ioClientId === req.query.clientId);
   const me = member ? { ...member } : null;
 
-  // Clean identifying data
+  // Remove private data
   room.members.forEach(member => {
     delete member.ioClientId;
     delete member.votes;
+  });
+  room.groups.forEach(group => {
+    group.cards.forEach((card) => {
+      const isTextHidden = !room.revealImmediately && room.state === 'brainstorm' && card.author !== req.query.clientId;
+
+      if (isTextHidden) card.text = 'Will be revealed in next stage.';
+      delete card.author;
+      delete card.authorName;
+    });
   });
 
   res.status(200).send({
@@ -372,7 +387,8 @@ app.post('/rooms', async (req, res) => {
     groups: [],
     nonceOrder: [],
     voteCount: req.body.voteCount,
-    isAnonymous: req.body.isAnonymous || false,
+    isAnonymous: !!req.body.isAnonymous,
+    revealImmediately: !!req.body.revealImmediately,
     previousActionItems: actionItems,
     actionItems,
     startWithActionItemReview,

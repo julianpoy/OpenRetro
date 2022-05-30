@@ -26,7 +26,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
   const [userName, setUserName] = useState(localStorage.getItem('nickname') || '');
   const [format, setFormat] = useState(localStorage.getItem('format') || FORMATS.AGILE);
   const [voteCount, setVoteCount] = useState(parseInt(localStorage.getItem('voteCount'), 10) || 5);
-  const [anonymity, setAnonymity] = useState(localStorage.getItem('anonymity') === 'false' || true);
+  const [anonymity, setAnonymity] = useState(localStorage.getItem('anonymity') || 'false');
+  const [revealImmediately, setRevealImmediately] = useState(localStorage.getItem('revealImmediately') || 'true');
   const [previousActionItems, setPrevionsActionItems] = useState([]);
   const [startWithActionItemReview, setStartWithActionItemReview] = useState(true);
 
@@ -48,6 +49,10 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
 
   const onAnonymityChange = (event) => {
     setAnonymity(event.target.value);
+  };
+
+  const onRevealImmediatelyChange = (event) => {
+    setRevealImmediately(event.target.value);
   };
 
   const onActionItemsUpload = (event) => {
@@ -95,7 +100,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
         name: roomName || userName + '\'s retro',
         format,
         voteCount,
-        isAnonymous: anonymity,
+        isAnonymous: anonymity === 'true',
+        revealImmediately: revealImmediately === 'true',
         previousActionItems,
         startWithActionItemReview: startWithActionItemReview && previousActionItems.length,
       }),
@@ -109,6 +115,7 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
       localStorage.setItem('format', format);
       localStorage.setItem('voteCount', voteCount);
       localStorage.setItem('anonymity', anonymity);
+      localStorage.setItem('revealImmediately', revealImmediately);
     } catch (e) {}
   };
 
@@ -161,8 +168,18 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
           value={anonymity}
           onChange={onAnonymityChange}
         >
-          <option value={true}>Enable</option>
-          <option value={false}>Disable</option>
+          <option value={'true'}>Enable</option>
+          <option value={'false'}>Disable</option>
+        </Select>
+      </Label>
+      <Label>
+        Reveal Cards During Brainstorm Stage<br />
+        <Select
+          value={revealImmediately}
+          onChange={onRevealImmediatelyChange}
+        >
+          <option value={'true'}>Enable</option>
+          <option value={'false'}>Disable</option>
         </Select>
       </Label>
       <Label>

@@ -13,10 +13,16 @@ const StatusLine = styled.div`
   margin: 20px 0;
 `;
 
+const ParticipantsButton = styled(ClearButton)`
+  font-size: 16px;
+  margin: 0;
+`;
+
 const ParticipantsPopover = styled.div`
   position: absolute;
   width: 300px;
   max-width: 100%;
+  margin-top: -20px;
   margin-left: auto;
   margin-right: auto;
   left: 0;
@@ -64,9 +70,8 @@ export const ReadyStatus = ({ members, me }) => {
   return (
     <div>
       <StatusLine>
-        ({readyCount}/{members.length} participants ready)&nbsp;
+        ({readyCount}/{members.length} <ParticipantsButton onClick={() => setShowParticipants(!showParticipants)}>participants</ParticipantsButton> ready)&nbsp;
         <Button onClick={readyUp}>{room.me.ready ? 'Not Finished' : 'I\'m Finished'}</Button>
-        <ClearButton onClick={() => setShowParticipants(!showParticipants)}>&#x25BC;</ClearButton>
       </StatusLine>
 
       {showParticipants && (

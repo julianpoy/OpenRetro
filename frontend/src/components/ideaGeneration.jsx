@@ -7,6 +7,7 @@ import { ColumnInput } from './columnInput.jsx';
 
 import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {GridCard, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
+import {ROOM_STATES} from '../utils/roomStates.js';
 
 export const IdeaGeneration = ({ disableInput }) => {
   const socket = useContext(SocketContext);
@@ -83,6 +84,7 @@ export const IdeaGeneration = ({ disableInput }) => {
                 <GridCard
                   key={card.nonce}
                   color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                  invisible={!room.revealImmediately && room.state === ROOM_STATES.IDEA_GENERATION && !card.isOwner}
                   onDragStart={(event) => dragStart(event, card)}
                   onDragEnd={(event) => dragEnd(event, card)}
                   onDragEnter={(event) => dragEnterCard(event, group, card)}
