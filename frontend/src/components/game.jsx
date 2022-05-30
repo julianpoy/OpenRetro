@@ -10,9 +10,10 @@ import {Vote} from './vote.jsx';
 import {Discuss} from './discuss.jsx';
 import {Header} from './header.jsx';
 import {StageControls} from './stageControls.jsx';
-import {GameStatus} from './gameStatus.jsx';
+import {ActionItemReview} from './actionItemReview.jsx';
 import {ReadyStatus} from './readyStatus.jsx';
 import {ROOM_STATES} from '../utils/roomStates.js';
+import {Review} from './review.jsx';
 
 //const SplitPane = styled.div`
   //display: grid;
@@ -24,10 +25,12 @@ export const Game = () => {
   const room = useContext(RoomContext);
 
   const gameStates = {
+    [ROOM_STATES.PRE_REVIEW]: <ActionItemReview />,
     [ROOM_STATES.IDEA_GENERATION]: <IdeaGeneration blind={room.blind} />,
     [ROOM_STATES.GROUP]: <IdeaGeneration disableInput={true} />,
     [ROOM_STATES.VOTE]: <Vote />,
     [ROOM_STATES.DISCUSS]: <Discuss />,
+    [ROOM_STATES.REVIEW]: <Review />,
   };
 
   return (
@@ -35,7 +38,9 @@ export const Game = () => {
       <Header />
       <SocketConnectionGuard>
         <StageControls />
-        <ReadyStatus members={room.members} me={room.me} />
+        {room.state !== ROOM_STATES.REVIEW && (
+          <ReadyStatus members={room.members} me={room.me} />
+        )}
         {gameStates[room.state]}
       </SocketConnectionGuard>
     </div>

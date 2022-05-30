@@ -39,7 +39,7 @@ export const ActionItems = ({
   const actionItemKeydown = (event, group) => {
     if (event.keyCode !== 13) return;
 
-    socket.emit('createActionItem', room.code, group.nonce, value);
+    socket.emit('actionItem.create', room.code, group.nonce, value);
     setValue('');
   };
 

@@ -11,7 +11,7 @@ const Container = styled.div`
   text-align: center;
   margin: 40px;
   margin-bottom: 20px;
-  max-width: 400px;
+  max-width: ${(props) => props.showPreReview ? '650px' : '475px'};
   margin-left: auto;
   margin-right: auto;
   display: flex;
@@ -49,13 +49,34 @@ export const StageControls = () => {
   const isAllReady = !room.members.find((member) => !member.ready);
 
   const fireStage = (stage) => {
-    if (!isAllReady && !confirm("Not all members have indicated they're ready, are you sure you want to proceed?")) return;
+    const displayAlert = !isAllReady && room.state !== ROOM_STATES.REVIEW;
+    if (displayAlert && !confirm("Not all members have indicated they're ready, are you sure you want to proceed?")) return;
 
     socket.emit('setState', room.code, stage);
   };
 
+  const divider = (
+    <Chevron>
+      &rsaquo;
+    </Chevron>
+  );
+
+  const showPreReview = !!room.previousActionItems.length;
+
   return (
-    <Container>
+    <Container showPreReview={showPreReview}>
+      {showPreReview && (
+        <>
+          <Button
+            onClick={() => fireStage(ROOM_STATES.PRE_REVIEW)}
+            active={room.state === ROOM_STATES.PRE_REVIEW}
+            theme={themeContext.theme}
+          >
+            Pre-Review
+          </Button>
+          {divider}
+        </>
+      )}
       <Button
         onClick={() => fireStage(ROOM_STATES.IDEA_GENERATION)}
         active={room.state === ROOM_STATES.IDEA_GENERATION}
@@ -63,9 +84,7 @@ export const StageControls = () => {
       >
         Brainstorm
       </Button>
-      <Chevron>
-        &rsaquo;
-      </Chevron>
+      {divider}
       <Button
         onClick={() => fireStage(ROOM_STATES.GROUP)}
         active={room.state === ROOM_STATES.GROUP}
@@ -73,9 +92,7 @@ export const StageControls = () => {
       >
         Group
       </Button>
-      <Chevron>
-        &rsaquo;
-      </Chevron>
+      {divider}
       <Button
         onClick={() => fireStage(ROOM_STATES.VOTE)}
         active={room.state === ROOM_STATES.VOTE}
@@ -83,15 +100,21 @@ export const StageControls = () => {
       >
         Vote
       </Button>
-      <Chevron>
-        &rsaquo;
-      </Chevron>
+      {divider}
       <Button
         onClick={() => fireStage(ROOM_STATES.DISCUSS)}
         active={room.state === ROOM_STATES.DISCUSS}
         theme={themeContext.theme}
       >
         Discuss
+      </Button>
+      {divider}
+      <Button
+        onClick={() => fireStage(ROOM_STATES.REVIEW)}
+        active={room.state === ROOM_STATES.REVIEW}
+        theme={themeContext.theme}
+      >
+        Review
       </Button>
     </Container>
   );

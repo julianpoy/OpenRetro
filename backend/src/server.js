@@ -144,7 +144,7 @@ io.on('connection', socket => {
   }));
 
   socket.on('setState', (roomCode, state) => eventWrapper(roomCode, ({ room, member }) => {
-    const validStates = ['brainstorm', 'group', 'vote', 'discuss'];
+    const validStates = ['preReview', 'brainstorm', 'group', 'vote', 'discuss', 'review'];
 
     if (!validStates.includes(state)) return;
 
@@ -152,6 +152,9 @@ io.on('connection', socket => {
 
     room.members.forEach((member) => member.ready = false);
     if (state !== 'vote' && state !== 'discuss') room.members.forEach((member) => member.votes = []);
+
+    const actionItems = room.groups.map((group) => group.actionItems).flat();
+    room.actionItems = [...actionItems, ...room.previousActionItems];
   }));
 
   socket.on('add', (roomCode, columnIdx, text) => eventWrapper(roomCode, ({ room, member }) => {
@@ -232,15 +235,37 @@ io.on('connection', socket => {
     group.cards.forEach((card) => card.columnIdx = columnIdx);
   }));
 
-  socket.on('createActionItem', (roomCode, nonce, title) => eventWrapper(roomCode, ({ room, member }) => {
+  socket.on('actionItem.create', (roomCode, nonce, title) => eventWrapper(roomCode, ({ room, member }) => {
     const group = room.groups.find((group) => group.nonce === nonce);
 
     if (!group) return;
 
     const actionItem = {
       title,
+      date: new Date().getTime(),
+      nonce: generateClientId(),
+      done: false,
     };
     group.actionItems.push(actionItem);
+  }));
+
+  socket.on('actionItem.update', (roomCode, nonce, title, done, del) => eventWrapper(roomCode, ({ room, member }) => {
+    const update = (list) => {
+      const actionItem = list.find((actionItem) => actionItem.nonce === nonce);
+      if (actionItem) {
+        actionItem.title = title;
+        actionItem.done = done;
+
+        if (del) list.splice(list.indexOf(actionItem), 1);
+      }
+    };
+
+    room.groups.forEach((group) => {
+      update(group.actionItems);
+    });
+ 
+    update(room.actionItems);
+    update(room.previousActionItems);
   }));
 
   //socket.on('delete', (roomCode, nonce) => eventWrapper(roomCode, (room, member) => {
@@ -276,6 +301,20 @@ app.get('/', (req, res) => res.render('frontend', {
   FRONTEND_ASSET_PATH: process.env.FRONTEND_ASSET_PATH
 }));
 
+app.get('/rooms/:id/actionItemsExport', async (req, res) => {
+  const room = await redisService.json.get(`room:${req.params.id}`, '.');
+
+  if (!room) return res.sendStatus(404);
+
+  const toExport = room.actionItems
+    .filter(actionItem => !actionItem.done)
+    .map(actionItem => ({
+      title: actionItem.title,
+      date: actionItem.date,
+    }));
+
+  res.status(200).send(toExport);
+});
 
 app.get('/rooms/:id', async (req, res) => {
   const room = await redisService.json.get(`room:${req.params.id}`, '.');
@@ -317,15 +356,26 @@ app.get('/rooms/:id', async (req, res) => {
 app.post('/rooms', async (req, res) => {
   const code = await generateRoomCode();
   console.log("creating new room with code", code);
+
+  const actionItems = (req.body.previousActionItems || []).map(actionItem => ({
+    ...actionItem,
+    nonce: generateClientId(),
+    done: false,
+  }));
+  const startWithActionItemReview = actionItems.length && req.body.startWithActionItemReview;
+  const state = startWithActionItemReview ? 'preReview' : 'brainstorm';
   const room = {
     code,
     members: [],
-    state: 'brainstorm',
+    state,
     format: req.body.format,
     groups: [],
     nonceOrder: [],
     voteCount: req.body.voteCount,
     isAnonymous: req.body.isAnonymous || false,
+    previousActionItems: actionItems,
+    actionItems,
+    startWithActionItemReview,
   };
 
   const rkey = `room:${room.code}`;

@@ -27,6 +27,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
   const [format, setFormat] = useState(localStorage.getItem('format') || FORMATS.AGILE);
   const [voteCount, setVoteCount] = useState(parseInt(localStorage.getItem('voteCount'), 10) || 5);
   const [anonymity, setAnonymity] = useState(localStorage.getItem('anonymity') === 'false' || true);
+  const [previousActionItems, setPrevionsActionItems] = useState([]);
+  const [startWithActionItemReview, setStartWithActionItemReview] = useState(true);
 
   const onRoomNameChange = (event) => {
     setRoomName(event.target.value);
@@ -48,6 +50,41 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
     setAnonymity(event.target.value);
   };
 
+  const onActionItemsUpload = (event) => {
+    if (!event.target?.result) return alert('No text content');
+
+    let json;
+    try {
+      json = JSON.parse(event.target.result);
+    } catch(e) {
+      console.error(e);
+      return alert('File is not valid');
+    }
+
+    if (!json.length) return alert('File is not valid');
+
+    const items = [];
+    for (const item of json) {
+      if (!item.title) return;
+      if (!item.date) return;
+
+      items.push({
+        title: item.title,
+        date: item.date,
+      });
+    }
+
+    setPrevionsActionItems(items);
+  }
+
+  const onActionItemsSelected = (event) => {
+    if (!event.target?.files?.length) return alert('Could not load file');
+
+    const reader = new FileReader();
+    reader.onload = onActionItemsUpload;
+    reader.readAsText(event.target.files[0]);
+  };
+
   const createRoom = async () => {
     const room = await fetch('/rooms', {
       method: 'POST',
@@ -59,6 +96,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
         format,
         voteCount,
         isAnonymous: anonymity,
+        previousActionItems,
+        startWithActionItemReview: startWithActionItemReview && previousActionItems.length,
       }),
     }).then((resp) => resp.json());
 
@@ -126,6 +165,24 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
           <option value={false}>Disable</option>
         </Select>
       </Label>
+      <Label>
+        Previous Action Items<br />
+        <Input
+          type="file"
+          name="file"
+          onChange={onActionItemsSelected}
+        />
+      </Label>
+      {previousActionItems.length > 0 && (
+        <Label>
+          <Input
+            type="checkbox"
+            checked={startWithActionItemReview}
+            onChange={() => setStartWithActionItemReview(event.target.checked)}
+          />
+          Start with action item review
+        </Label>
+      )}
       
       <Button
         onClick={createRoom}

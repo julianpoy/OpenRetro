@@ -46,6 +46,7 @@ export const Discuss = () => {
   useEffect(() => {
     const groups = document.getElementsByClassName('group-entry');
     const group = groups[currentGroup];
+    if (!group) return;
     group.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
   }, [currentGroup, padderWidth]);
 
