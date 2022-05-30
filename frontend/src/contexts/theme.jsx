@@ -13,7 +13,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   ::placeholder {
-    ${(props) => props.theme === 'dark' && 'color: #eee;'}
+    ${(props) => props.theme === 'dark' && 'color: #bfbfbf;'}
   }
 
   a:visited {

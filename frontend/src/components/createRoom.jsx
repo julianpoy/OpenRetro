@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types';
-import { useState } from 'preact/hooks';
+import { useState, useContext } from 'preact/hooks';
 import styled from 'styled-components';
 
 import { FORMATS, FORMAT_COLUMNS, FORMAT_NAMES } from '../utils/formats.js';
 import {Input, Select} from './input.jsx';
 import {Button, ClearButton} from './button.jsx';
+import {ThemeContext} from '../contexts/theme.jsx';
 
 const Container = styled.div`
   margin-top: 2rem;
@@ -21,7 +22,13 @@ const Label = styled.label`
   margin: 10px;
 `;
 
+const Option = styled.option`
+  background-color: ${(props) => props.theme === 'dark' ? 'black' : 'white'}
+`;
+
 export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
+  const themeContext = useContext(ThemeContext);
+
   const [roomName, setRoomName] = useState('');
   const [userName, setUserName] = useState(localStorage.getItem('nickname') || '');
   const [format, setFormat] = useState(localStorage.getItem('format') || FORMATS.AGILE);
@@ -149,7 +156,7 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
           onChange={onFormatChange}
         >
           {Object.values(FORMATS).map((format, idx) => (
-            <option value={format}>{FORMAT_NAMES[format]}</option>
+            <Option value={format} theme={themeContext.theme}>{FORMAT_NAMES[format]}</Option>
           ))}
         </Select>
       </Label>
@@ -168,8 +175,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
           value={anonymity}
           onChange={onAnonymityChange}
         >
-          <option value={'true'}>Enable</option>
-          <option value={'false'}>Disable</option>
+          <Option value={'true'} theme={themeContext.theme}>Enable</Option>
+          <Option value={'false'} theme={themeContext.theme}>Disable</Option>
         </Select>
       </Label>
       <Label>
@@ -178,8 +185,8 @@ export const CreateRoom = ({ setRoom, socket, cancelCreating }) => {
           value={revealImmediately}
           onChange={onRevealImmediatelyChange}
         >
-          <option value={'true'}>Enable</option>
-          <option value={'false'}>Disable</option>
+          <Option value={'true'} theme={themeContext.theme}>Enable</Option>
+          <Option value={'false'} theme={themeContext.theme}>Disable</Option>
         </Select>
       </Label>
       <Label>
