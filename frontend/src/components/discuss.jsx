@@ -17,6 +17,10 @@ const ScrollingGrid = styled.div`
   white-space: nowrap;
   max-width: 100%;
   overflow-x: hidden;
+
+  > * {
+    white-space: normal;
+  }
 `;
 
 const DiscussionItem = styled.div`
