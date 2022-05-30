@@ -26,11 +26,12 @@ export const GridGroup = styled.div`
 `;
 
 export const GridCard = styled.div`
+  position: relative;
   border-radius: 5px;
   background: ${(props) => props.color};
   color: ${(props) => props.invisible ? 'transparent' : 'black'};
   font-size: 14px;
-  padding: 10px;
+  padding: 10px 20px;
   margin: 1px;
   cursor: pointer;
 `;

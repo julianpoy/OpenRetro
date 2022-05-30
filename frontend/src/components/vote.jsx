@@ -25,6 +25,11 @@ const VoteCount = styled.span`
   margin-right: 5px;
 `;
 
+const GroupTitle = styled.div`
+  text-align: left;
+  font-size: 14px;
+`;
+
 export const Vote = () => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
@@ -71,7 +76,11 @@ export const Vote = () => {
                   <Button onClick={() => vote(group.nonce, 1)} disabled={atMaxVotes}>+</Button>
                 </VoteContainer>
                 
-                {group.cards.length > 1 ? group.title : null}
+                {group.cards.length > 1 && (
+                  <GroupTitle>
+                    {group.title}
+                  </GroupTitle>
+                )}
                 {group.cards.sort(sortByNonce).map((card) => (
                   <GridCard
                     key={card.nonce}

@@ -1,8 +1,19 @@
 import { useEffect, useContext, useRef, useState } from 'preact/hooks';
+import styled from 'styled-components';
 
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
-import {Input} from './input.jsx';
+import {Textarea} from './input.jsx';
+
+const Container = styled.div`
+  display: flex;
+
+  > * {
+    flex-grow: 1;
+    height: 20px;
+    min-height: 20px;
+  }
+`;
 
 export const ColumnInput = ({
   columnIdx,
@@ -24,16 +35,22 @@ export const ColumnInput = ({
   }
 
   const onKeyDown = (event) => {
-    if (event.keyCode === 13) submit();
+    if (event.keyCode === 13) {
+      event.preventDefault();
+      submit();
+    }
   }
 
   return (
-    <Input
-      value={text}
-      onInput={onChange}
-      onKeyDown={onKeyDown}
-      placeholder="Press enter to submit"
-    />
+    <Container>
+      <Textarea
+        rows="1"
+        value={text}
+        onInput={onChange}
+        onKeyDown={onKeyDown}
+        placeholder="Press enter to submit"
+      />
+    </Container>
   );
 };
 

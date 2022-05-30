@@ -34,3 +34,7 @@ export const ClearButton = styled.button`
     background-color: #81abf5;
   }
 `;
+
+export const IconButton = styled(ClearButton)`
+  font-size: 16px;
+`

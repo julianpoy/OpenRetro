@@ -223,6 +223,25 @@ io.on('connection', socket => {
     }
   }));
 
+  socket.on('card.delete', (roomCode, groupNonce, nonce) => eventWrapper(roomCode, ({ room, member }) => {
+    const group = room.groups.find(group => group.nonce === groupNonce);
+    if (!group) return;
+    const card = group.cards.find(card => card.nonce === nonce);
+    if (!card) return;
+
+    if (card.author !== member?.ioClientId) return;
+
+    group.cards.splice(group.cards.indexOf(card), 1);
+    if (group.cards.length === 0) room.groups.splice(room.groups.indexOf(group), 1);
+  }));
+
+  socket.on('group.rename', (roomCode, nonce, title) => eventWrapper(roomCode, ({ room, member }) => {
+    const group = room.groups.find(group => group.nonce === nonce);
+    console.log("group is", group, title);
+    if (!group) return;
+
+    group.title = title;
+  }));
   //socket.on('moveCard', (roomCode, nonce, columnIdx) => eventWrapper(roomCode, (room, member) => {
     //const group = room.groups.find((group) => group.cards.find((card) => card.nonce === nonce));
     //if (group.cards.length > 1) return; // Groups must be moved with moveGroup, or card must be moved out of group via groupCard
