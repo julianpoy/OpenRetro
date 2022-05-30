@@ -60,7 +60,7 @@ export const StageControls = () => {
       onReject: () => modal.dismiss(),
     });
 
-    setState();
+    setState(state);
   };
 
   const setState = (state) => {
