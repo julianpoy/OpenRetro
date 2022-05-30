@@ -155,6 +155,7 @@ io.on('connection', socket => {
 
     const actionItems = room.groups.map((group) => group.actionItems).flat();
     room.actionItems = [...actionItems, ...room.previousActionItems];
+    room.currentGroupIdx = 0;
   }));
 
   socket.on('add', (roomCode, columnIdx, text) => eventWrapper(roomCode, ({ room, member }) => {
