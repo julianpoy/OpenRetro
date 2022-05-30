@@ -19,6 +19,11 @@ const Title = styled.h1`
   margin-bottom: 0.5rem;
   font-size: 1.7rem;
   margin-top: 0;
+
+  > a {
+    text-decoration: none;
+    color: inherit;
+  }
 `;
 
 const Tagline = styled.p`
@@ -33,7 +38,9 @@ export const Header = () => {
   return (
     <Container theme={themeContext.theme}>
       <div>
-        <Title>OpenRetro!</Title>
+        <Title>
+          <a href="/">OpenRetro!</a>
+        </Title>
         <Tagline>
           A free and <a href="https://github.com/julianpoy/openretro">open source</a> retro tool.
         </Tagline>
