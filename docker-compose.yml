@@ -8,16 +8,10 @@ services:
     - ./backend/src:/app/src
     environment:
       - FRONTEND_ASSET_PATH=/assets
-      - MONGODB_URI=mongodb://root:DBPASS_CHANGEME@mongo:27017/openretro
     depends_on:
       - redis
   redis:
     image: redislabs/rejson
-  mongo:
-    image: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: DBPASS_CHANGEME
   frontend:
     build:
       context: ./frontend
