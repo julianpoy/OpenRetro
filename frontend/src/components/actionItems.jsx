@@ -11,6 +11,8 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   padding-bottom: 10px;
+  width: 400px;
+  margin: 10px;
 `;
 
 const ActionItemsContainer = styled.div`
