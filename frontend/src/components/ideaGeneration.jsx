@@ -83,6 +83,9 @@ export const IdeaGeneration = ({ disableInput }) => {
   const dragEnterCard = (event, group, card) => {
     event.stopPropagation();
 
+    // Cards can only be moved between columns in idea generation stage
+    if (room.state === ROOM_STATES.IDEA_GENERATION) return;
+
     setDragTargetType('card');
     setDragTarget({
       group,
