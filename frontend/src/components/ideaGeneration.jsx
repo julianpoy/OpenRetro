@@ -8,7 +8,7 @@ import {SocketContext} from '../contexts/socket.jsx';
 import { ColumnInput } from './columnInput.jsx';
 
 import { FORMAT_COLUMNS } from '../utils/formats.js';
-import {GridCard, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
+import {GridCard, GridCardContent, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
 import {ROOM_STATES} from '../utils/roomStates.js';
 import {IconButton} from './button.jsx';
 import {Input} from './input.jsx';
@@ -68,6 +68,7 @@ export const IdeaGeneration = ({ disableInput }) => {
     const groupNonce = dragTargetType === 'card' ? dragTarget.group.nonce : null;
     const columnIdx = dragTargetType === 'card' ? dragTarget.group.columnIdx : dragTarget;
 
+    if (dragTargetType === 'card') socket.emit('order', room.code, dragItem.nonce, dragTarget.beforeNonce);
     socket.emit('groupCard', room.code, groupNonce, dragItem.nonce, columnIdx);
 
     clearDrag();
@@ -86,10 +87,20 @@ export const IdeaGeneration = ({ disableInput }) => {
     // Cards can only be moved between columns in idea generation stage
     if (room.state === ROOM_STATES.IDEA_GENERATION) return;
 
+    const bbox = event.target.getBoundingClientRect();
+    const targetOffset = bbox.y + (bbox.height / 2);
+    const isAfter = event.clientY - targetOffset > 0;
+    const idxModifier = isAfter ? 1 : 0;
+
+    const beforeNonce = room.nonceOrder[room.nonceOrder.indexOf(card.nonce) + idxModifier] || null;
+    const afterNonce = room.nonceOrder[room.nonceOrder.indexOf(card.nonce) + idxModifier - 1] || null;
+
     setDragTargetType('card');
     setDragTarget({
       group,
-      card
+      card,
+      beforeNonce,
+      afterNonce,
     });
   };
 
@@ -100,7 +111,7 @@ export const IdeaGeneration = ({ disableInput }) => {
       {FORMAT_COLUMNS[room.format].map((column, idx) => (
         <GridColumn
           key={idx}
-          onDragEnter={(event) => dragEnterColumn(event, idx)}
+          onDragOver={(event) => dragEnterColumn(event, idx)}
           dropEffect={dragTargetType === 'column' && dragTarget === idx}
         >
           <GridColumnTitle>
@@ -115,20 +126,25 @@ export const IdeaGeneration = ({ disableInput }) => {
               theme={themeContext.theme}
             >
               {group.cards.length > 1 && <GroupName group={group} />}
-              {group.cards.sort(sortByNonce).map((card) => (
+              {group.cards.sort(sortByNonce).map((card, cardIdx, cards) => (
                 <GridCard
                   key={card.nonce}
-                  color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
                   theme={themeContext.theme}
                   invisible={!room.revealImmediately && room.state === ROOM_STATES.IDEA_GENERATION && !card.isOwner}
+                  showDropBeforeBorder={dragTarget?.group?.nonce === group.nonce && dragTarget?.beforeNonce === card.nonce}
+                  showDropAfterBorder={dragTarget?.group?.nonce === group.nonce && dragTarget?.afterNonce === card.nonce && cardIdx === cards.length - 1}
                   onDragStart={(event) => dragStart(event, card)}
                   onDragEnd={(event) => dragEnd(event, card)}
-                  onDragEnter={(event) => dragEnterCard(event, group, card)}
+                  onDragOver={(event) => dragEnterCard(event, group, card)}
                   draggable>
-                  {card.text}
-                  {room.state === ROOM_STATES.IDEA_GENERATION && card.isOwner && (
-                    <Delete onClick={() => deleteCard(group, card)}>&#x1F5D1;</Delete>
-                  )}
+                  <GridCardContent
+                    color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                  >
+                    {card.text}
+                    {room.state === ROOM_STATES.IDEA_GENERATION && card.isOwner && (
+                      <Delete onClick={() => deleteCard(group, card)}>&#x1F5D1;</Delete>
+                    )}
+                  </GridCardContent>
                 </GridCard>
               ))}
             </GridGroup>
