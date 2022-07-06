@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 import {SocketContext} from '../contexts/socket.jsx';
 import {RoomContext} from '../contexts/room.jsx';
 import {Button, ClearButton} from './button.jsx';
+import {Timer} from './timer.jsx';
+import {Popover} from './popover.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
 
 const StatusLine = styled.div`
@@ -16,21 +18,6 @@ const StatusLine = styled.div`
 const ParticipantsButton = styled(ClearButton)`
   font-size: 16px;
   margin: 0;
-`;
-
-const ParticipantsPopover = styled.div`
-  position: absolute;
-  width: 300px;
-  max-width: 100%;
-  margin-top: -20px;
-  margin-left: auto;
-  margin-right: auto;
-  left: 0;
-  right: 0;
-  background: ${(props) => props.theme === 'dark' ? 'black' : 'white'};
-  box-shadow: 0 0 7px rgba(0,0,0,0.3);
-  padding: 15px;
-  font-size: 14px;
 `;
 
 const Participant = styled.div`
@@ -54,6 +41,10 @@ const VoteBubble = styled.div`
   margin-left: 1px;
 `;
 
+const You = styled.span`
+  color: ${(props) => props.theme === 'dark' ? 'lightblue' : 'blue'};
+`;
+
 export const ReadyStatus = ({ members, me }) => {
   const socket = useContext(SocketContext);
   const room = useContext(RoomContext);
@@ -72,25 +63,29 @@ export const ReadyStatus = ({ members, me }) => {
       <StatusLine>
         ({readyCount}/{members.length} <ParticipantsButton onClick={() => setShowParticipants(!showParticipants)}>participants</ParticipantsButton> ready)&nbsp;
         <Button onClick={readyUp}>{room.me.ready ? 'Not Finished' : 'I\'m Finished'}</Button>
+        <Timer />
       </StatusLine>
 
       {showParticipants && (
-        <ParticipantsPopover theme={themeContext.theme}>
+        <Popover theme={themeContext.theme}>
           {members.map((member) => (
             <Participant key={member.ioClientId}>
-              {member.ready ? <>&#9989;</> : <>&#10060;</>}
-              {' '}
-              {member.name}
+              <span>
+                {member.ready ? <>&#9989;</> : <>&#10060;</>}
+                {' '}
+                {member.name}
+                <You theme={themeContext.theme}>{room.me.nonce === member.nonce && ' (you)'}</You>
+              </span>
               {room.state === 'vote' && (
                 <VoteBubbleContainer>
                   {Array.from({ length: room.voteCount }, () => 0).map((_, i) => (
-                    <VoteBubble filled={i < room.me.voteCount} />
+                    <VoteBubble filled={i < member.voteCount} />
                   ))}
                 </VoteBubbleContainer>
               )}
             </Participant>
           ))}
-        </ParticipantsPopover>
+        </Popover>
       )}
     </div>
   );

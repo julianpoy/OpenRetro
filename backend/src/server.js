@@ -106,6 +106,7 @@ io.on('connection', socket => {
       if (!existingMember) {
         room.members.push({
           ioClientId: clientId,
+          nonce: generateClientId(),
           ready: false,
           votes: [],
           name: room.isAnonymous ? getAnonymousName(room.members.map(member => member.name)) : name,
@@ -119,24 +120,29 @@ io.on('connection', socket => {
 
   const eventWrapper = async (roomCode, cb) => {
     const rkey = `room:${roomCode}`;
-    await redisService.redlock.using(['lock-' + rkey], 1000, async (signal) => {
-      const room = await redisService.json.get(rkey, '.');
-      if (!room) return;
 
-      const member = room.members.find(member => member.ioClientId === clientId);
-      if (!member) return;
+    try {
+      await redisService.redlock.using(['lock-' + rkey], 1000, async (signal) => {
+        const room = await redisService.json.get(rkey, '.');
+        if (!room) return;
 
-      await cb({
-        rkey,
-        room,
-        member,
-        signal,
+        const member = room.members.find(member => member.ioClientId === clientId);
+        if (!member) return;
+
+        await cb({
+          rkey,
+          room,
+          member,
+          signal,
+        });
+
+        await redisService.json.set(rkey, '.', room);
       });
 
-      await redisService.json.set(rkey, '.', room);
-    });
-
-    io.to(roomCode).emit('room-update', roomCode);
+      io.to(roomCode).emit('room-update', roomCode);
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   socket.on('ready', (roomCode) => eventWrapper(roomCode, ({ room, member }) => {
@@ -296,6 +302,13 @@ io.on('connection', socket => {
     room.currentGroupIdx = groupIdx;
   }));
 
+  socket.on('timer.set', (roomCode, endStamp) => eventWrapper(roomCode, ({ room, member }) => {
+    room.timerEnd = new Date(endStamp).getTime() || null;
+  }));
+
+  socket.on('timer.clear', (roomCode) => eventWrapper(roomCode, ({ room, member }) => {
+    room.timerEnd = null;
+  }));
   //socket.on('delete', (roomCode, nonce) => eventWrapper(roomCode, (room, member) => {
     //for (let i = 0; i < room.cardColumns.length; i++) {
       //const column = room.cardColumns[i];
@@ -420,6 +433,7 @@ app.post('/rooms', async (req, res) => {
     previousActionItems: actionItems,
     actionItems,
     startWithActionItemReview,
+    timerEnd: null,
   };
 
   const rkey = `room:${room.code}`;

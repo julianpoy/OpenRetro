@@ -2,6 +2,7 @@ import {useContext} from 'preact/hooks';
 import styled from 'styled-components';
 
 import {RoomContext} from "../contexts/room.jsx";
+import {ThemeContext} from "../contexts/theme.jsx";
 import {ActionItemReview} from "./actionItemReview.jsx";
 
 const Container = styled.div`
@@ -16,11 +17,12 @@ const ActionItemsHeader = styled.h3`
 `;
 
 const Download = styled.a`
-  color: lightblue;
+  color: ${(props) => props.theme === 'dark' ? 'lightblue' : 'blue'};
 `;
 
 export const Review = () => {
   const room = useContext(RoomContext);
+  const themeContext = useContext(ThemeContext);
 
   const today = new Date().toLocaleDateString().replaceAll('/', '-');
 
@@ -34,7 +36,7 @@ export const Review = () => {
           <>
             {' '}
             You may close this page, but to save your state,&nbsp;
-            <Download href={`/rooms/${room.code}/actionItemsExport`} target="_blank" download={`OpenRetro - ${retroNameTruncated} ${today}.json`}>download your action items for next time.</Download>
+            <Download theme={themeContext.theme} href={`/rooms/${room.code}/actionItemsExport`} target="_blank" download={`OpenRetro - ${retroNameTruncated} ${today}.json`}>download your action items for next time.</Download>
           </>
         )}
       </div>

@@ -1,5 +1,8 @@
 import { useEffect, useContext, useRef, useState } from 'preact/hooks';
 import styled from 'styled-components';
+import smoothscroll from 'smoothscroll-polyfill';
+
+smoothscroll.polyfill();
 
 import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';

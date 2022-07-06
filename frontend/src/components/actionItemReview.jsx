@@ -21,7 +21,7 @@ const ActionItem = styled.label`
   box-shadow: 0 0 7px ${(props) => props.theme === 'dark' ? 'black' : 'rgba(0,0,0,0.2)'};
   padding: 10px;
   margin: 10px;
-  background: #222;
+  background: ${(props) => props.theme === 'dark' ? '#222' : 'white'};
   border-radius: 5px;
 `;
 

@@ -29,6 +29,10 @@ const Title = styled.h1`
 const Tagline = styled.p`
   margin: 0;
   font-size: 14px;
+  
+  > a {
+    color: ${(props) => props.theme === 'dark' ? 'lightblue' : 'blue'};
+  }
 `;
 
 export const Header = () => {
@@ -41,7 +45,7 @@ export const Header = () => {
         <Title>
           <a href="/">OpenRetro!</a>
         </Title>
-        <Tagline>
+        <Tagline theme={themeContext.theme}>
           A free and <a href="https://github.com/julianpoy/openretro">open source</a> retro tool.
         </Tagline>
       </div>
