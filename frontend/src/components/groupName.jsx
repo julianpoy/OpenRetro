@@ -4,6 +4,7 @@ import {RoomContext} from '../contexts/room.jsx';
 import {SocketContext} from '../contexts/socket.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
 import {IconButton} from './button.jsx';
+import {ClearButton} from './button.jsx';
 import {Input} from './input.jsx';
 
 const Container = styled.div`
@@ -53,13 +54,18 @@ export const GroupName = ({ group }) => {
   }
 
   useEffect(() => {
-    ref.current?.focus();
+    if (editing) ref.current?.focus();
   }, [editing]);
+
+  const save = (event) => {
+    event?.stopPropagation();
+    socket.emit('group.rename', room.code, group.nonce, title);
+    setEditing(false);
+  };
 
   const onKeyDown = (event) => {
     if (event.key === 'Enter') {
-      socket.emit('group.rename', room.code, group.nonce, title);
-      setEditing(false);
+      save();
     }
 
     if (event.key === 'Escape') {
@@ -76,6 +82,9 @@ export const GroupName = ({ group }) => {
         value={title}
         onChange={(event) => setTitle(event.target.value)}
       />
+      <ClearButton onClick={save}>
+        &#128190;
+      </ClearButton>
     </Container>
   );
 
