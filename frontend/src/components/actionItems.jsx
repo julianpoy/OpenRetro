@@ -41,6 +41,8 @@ const StyledInputActionItem = styled(Input)`
 
 const Delete = styled(IconButton)`
   color: red;
+  margin: 0;
+  font-size: 20px;
 `;
 
 export const ActionItems = ({

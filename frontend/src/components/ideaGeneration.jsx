@@ -21,6 +21,8 @@ const Delete = styled(IconButton)`
   top: 5px;
   right: 5px;
   color: red;
+  margin: 0;
+  font-size: 20px;
 `;
 
 export const IdeaGeneration = ({ disableInput }) => {
