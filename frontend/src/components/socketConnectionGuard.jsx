@@ -12,8 +12,6 @@ export const SocketConnectionGuard = ({ children }) => {
     });
   }, []);
 
-  console.log(socket, room, room?.me);
-
   if (!room || !room?.me) return (
     <span>
       Not connected to the room.

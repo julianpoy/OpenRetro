@@ -61,7 +61,6 @@ export const IdeaGeneration = ({ disableInput }) => {
   }
 
   const dragEnd = (event, card) => {
-    console.log("dragend");
     if (dragTarget === undefined) return clearDrag();
 
     if (dragTargetType === 'card' && dragTarget.card.nonce === card.nonce) return clearDrag(); // Don't allow cards to be moved to themselves
@@ -69,7 +68,6 @@ export const IdeaGeneration = ({ disableInput }) => {
     const groupNonce = dragTargetType === 'card' ? dragTarget.group.nonce : null;
     const columnIdx = dragTargetType === 'card' ? dragTarget.group.columnIdx : dragTarget;
 
-    console.log("moving", room.code, groupNonce, dragItem.nonce, columnIdx);
     socket.emit('groupCard', room.code, groupNonce, dragItem.nonce, columnIdx);
 
     clearDrag();

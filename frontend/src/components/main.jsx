@@ -35,7 +35,6 @@ socket.on('reconnect_attempt', () => {
 
 socket.on('connect', () => {
   clientId = socket.io.engine.id;
-  console.log('Connected', clientId);
 
   localStorage.setItem('clientId', clientId);
 });

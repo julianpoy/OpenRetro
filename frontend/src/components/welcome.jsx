@@ -26,7 +26,6 @@ export const Welcome = ({ setRoom, socket }) => {
 
     setRoom(room);
 
-    console.log("joining", room.code, userName);
     setTimeout(() => {
       socket.emit('join', room.code, userName);
     });
