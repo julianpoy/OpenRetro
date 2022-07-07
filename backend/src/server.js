@@ -156,6 +156,9 @@ io.on('connection', socket => {
 
     room.state = state;
 
+    // Reset the timer
+    room.timerEnd = null;
+
     room.members.forEach((member) => member.ready = false);
     if (state !== 'vote' && state !== 'discuss') room.members.forEach((member) => member.votes = []);
 
