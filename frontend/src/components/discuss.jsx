@@ -6,7 +6,7 @@ import {SocketContext} from '../contexts/socket.jsx';
 import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
 import {ActionItems} from './actionItems.jsx';
-import {GridCard, GridGroup} from './grid.jsx';
+import {GridCard, GridCardContent, GridGroup} from './grid.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
 
 const Controls = styled.div`
@@ -112,10 +112,13 @@ export const Discuss = () => {
               {group.cards.sort(sortByNonce).map((card) => (
                 <GridCard
                   key={card.nonce}
-                  color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
                   theme={themeContext.theme}
                 >
-                  {card.text}
+                  <GridCardContent
+                    color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                  >
+                    {card.text}
+                  </GridCardContent>
                 </GridCard>
               ))}
             </GridGroup>

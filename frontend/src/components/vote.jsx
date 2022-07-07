@@ -6,7 +6,7 @@ import {SocketContext} from '../contexts/socket.jsx';
 import {ThemeContext} from '../contexts/theme.jsx';
 import { FORMAT_COLUMNS } from '../utils/formats.js';
 import {Button} from './button.jsx';
-import {GridCard, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
+import {GridCard, GridCardContent, GridColumn, GridColumnTitle, GridContainer, GridGroup} from './grid.jsx';
 
 const VotesRemaining = styled.div`
   margin: 10px;
@@ -26,7 +26,7 @@ const VoteCount = styled.span`
 `;
 
 const VoteButton = styled(Button)`
-  padding: 0;
+  padding: 4px;
 `;
 
 const GroupTitle = styled.div`
@@ -89,10 +89,13 @@ export const Vote = () => {
                 {group.cards.sort(sortByNonce).map((card) => (
                   <GridCard
                     key={card.nonce}
-                    color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
                     theme={themeContext.theme}
                   >
-                    {card.text}
+                    <GridCardContent
+                      color={FORMAT_COLUMNS[room.format][card.columnIdx].color}
+                    >
+                      {card.text}
+                    </GridCardContent>
                   </GridCard>
                 ))}
               </GridGroup>
