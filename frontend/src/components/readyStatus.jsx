@@ -58,35 +58,36 @@ export const ReadyStatus = ({ members, me }) => {
 
   const readyCount = members.filter(member => member.ready).length;
 
+  const participantsPopover = (
+    <Popover theme={themeContext.theme}>
+      {members.map((member) => (
+        <Participant key={member.ioClientId}>
+          <span>
+            {member.ready ? <>&#9989;</> : <>&#10060;</>}
+            {' '}
+            {member.name}
+            <You theme={themeContext.theme}>{room.me.nonce === member.nonce && ' (you)'}</You>
+          </span>
+          {room.state === 'vote' && (
+            <VoteBubbleContainer>
+              {Array.from({ length: room.voteCount }, () => 0).map((_, i) => (
+                <VoteBubble filled={i < member.voteCount} />
+              ))}
+            </VoteBubbleContainer>
+          )}
+        </Participant>
+      ))}
+    </Popover>
+  );
+
   return (
     <div>
       <StatusLine>
         ({readyCount}/{members.length} <ParticipantsButton onClick={() => setShowParticipants(!showParticipants)}>participants</ParticipantsButton> ready)&nbsp;
+        {showParticipants && participantsPopover}
         <Button onClick={readyUp}>{room.me.ready ? 'Not Finished' : 'I\'m Finished'}</Button>
         <Timer />
       </StatusLine>
-
-      {showParticipants && (
-        <Popover theme={themeContext.theme}>
-          {members.map((member) => (
-            <Participant key={member.ioClientId}>
-              <span>
-                {member.ready ? <>&#9989;</> : <>&#10060;</>}
-                {' '}
-                {member.name}
-                <You theme={themeContext.theme}>{room.me.nonce === member.nonce && ' (you)'}</You>
-              </span>
-              {room.state === 'vote' && (
-                <VoteBubbleContainer>
-                  {Array.from({ length: room.voteCount }, () => 0).map((_, i) => (
-                    <VoteBubble filled={i < member.voteCount} />
-                  ))}
-                </VoteBubbleContainer>
-              )}
-            </Participant>
-          ))}
-        </Popover>
-      )}
     </div>
   );
 };

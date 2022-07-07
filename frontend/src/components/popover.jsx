@@ -4,7 +4,6 @@ export const Popover = styled.div`
   position: absolute;
   width: 300px;
   max-width: 100%;
-  margin-top: -20px;
   margin-left: auto;
   margin-right: auto;
   left: 0;
