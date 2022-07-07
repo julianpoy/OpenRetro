@@ -13,8 +13,8 @@ const MS_TO_SEC = 1000;
 
 const getRemainingMS = (date) => date - new Date();
 const getRemainingHrs = (date) => Math.floor(getRemainingMS(date) / MS_TO_HR);
-const getRemainingMins = (date) => Math.floor(getRemainingMS(date) % MS_TO_HR / MS_TO_MIN);
-const getRemainingSecs = (date) => Math.floor(getRemainingMS(date) % MS_TO_MIN / MS_TO_SEC);
+const getRemainingMins = (date) => Math.floor(getRemainingMS(date) % MS_TO_HR / MS_TO_MIN).toString().padStart(2, '0');
+const getRemainingSecs = (date) => Math.floor(getRemainingMS(date) % MS_TO_MIN / MS_TO_SEC).toString().padStart(2, '0');
 
 const TIME_PRESETS = [{
   title: '30 Seconds',
@@ -90,7 +90,7 @@ export const Timer = () => {
     // Cause re-render of this component to display current time countdown
     const interval = setInterval(() => {
       setCurrentTime(new Date().getTime());
-    }, 500);
+    }, 100);
 
     return () => clearInterval(interval);
   }, []);
